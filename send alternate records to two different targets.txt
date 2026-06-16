@@ -1,0 +1,67 @@
+
+________________ ETL project using Informatica powercenter (use case scenario) _____________________
+ 
+  ________________[Shaker Sami]____[Data Engineer]____[shaker.samiy@gmail.com]____[+201036497664  +201119396597]____ 
+
+LastUpdate Date:11 May 2026                 
+========================================================================================
+Business Requirement:
+		        "send alternate records to two different targets"
+	Split the records into the source table into two different target tables
+	such that first record in the first table, second record in the second table,
+	again the third record in the first table and so on
+       "send alternate records to two different targets"
+========================================================================================
+data samples source:
+	https://trumpexcel.com/excel-sample-data/#Hospital-Patients-Sample-Dataset
+========================================================================================	   
+Steps:
+1- create the database source table:
+    A-using import data
+2- check the success of load process
+     SELECT * FROM HealthcareDataProject;
+3- create two target tables:
+	A- CREATE TABLE HealthCareDataProject_ODD AS 
+	   SELECT * FROM HealthCareDataProject WHERE 1<>1; 
+	B- CREATE TABLE HealthCareDataProject_EVEN AS 
+       SELECT * FROM HealthCareDataProject WHERE 1<>1; 
+4- In informatica PowerCenter Designer:
+	A- In source analyzer:
+		load the source table [HealthCareDataProject]
+	B- In Target Designer:
+		get the target tables [HealthCareDataProject_ODD] [HealthCareDataProject_EVEN]
+	C- In mapping designer:
+		create a new map [m_HealthCareDataProject]
+5- In mapping designer:
+	A- get source table
+	B- get two targe tables
+	C- create sequence generator[SQG_HealthCareDataProject]
+6- Sequence generator expression [SQG_HealthCareDataProject]:
+	in properties tab: start value= 1
+7- Create Expression transformation [EXP_HealthCareDataProject]:
+	A-insert all the ports from source qulifier
+	B- insert the next value output port from sequence generator [SQG_HealthCareDataProject] into expression [EXP_HealthCareDataProject]
+	C- create new port [remainderFlag]:
+		a- make the type of this new port[remainderFlag] output only
+		b- this port has the expression MOD(nextval,2) --which mean the remainder from dividing the nextval over 2, the output is 0(even) or 1(odd)
+8- Create a router transformation [RTR_HealthCareDataProject]
+	A- connect all ports from expression into router transformation
+	B- in group tab create two groups:
+		Odd_Group:remainderFlag=1
+		Even_Group:remainderFlag=0
+9- Connect the Odd_Group ports in the router transformation to the HealthCareDataProject_ODD port table
+10- Connect the even_Group ports in the router transformation to the HealthCareDataProject_EVEN port table
+11- Create a workflow [wf_HealthCareDataProject]
+12- Run the workflow [wf_HealthCareDataProject]
+13- Check the output result in the database:
+	SELECT * FROM HealthCareDataProject_ODD;
+	SELECT * FROM HealthCareDataProject_EVEN;
+
+========================================================================================	
+Extra:
+	1- send alternate records to three different targets
+	2- send alternate records to four different targets
+	3- send alternate records to two different targets without using mod function.
+
+
+
